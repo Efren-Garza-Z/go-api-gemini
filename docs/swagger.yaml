@@ -1,0 +1,200 @@
+basePath: /
+definitions:
+  models.CreateUserInput:
+    properties:
+      email:
+        example: efren@example.com
+        type: string
+      full_name:
+        example: Efren David
+        type: string
+      password:
+        example: miPasswordSeguro123
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    type: object
+  models.PromptRequest:
+    properties:
+      prompt:
+        example: Conoces las becas para poder estudiar en finlandia o noruega?
+        type: string
+    type: object
+  models.TaskIDResponse:
+    properties:
+      task_id:
+        example: 8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d
+        type: string
+    type: object
+  models.TaskResponse:
+    properties:
+      error:
+        type: string
+      id:
+        example: 8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d
+        type: string
+      result:
+        example: Sí, existen varias becas...
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/models.TaskStatus'
+        example: finalizado
+    type: object
+  models.TaskStatus:
+    enum:
+    - pendiente
+    - en_proceso
+    - finalizado
+    - error
+    type: string
+    x-enum-varnames:
+    - StatusPending
+    - StatusProcessing
+    - StatusCompleted
+    - StatusError
+  models.User:
+    properties:
+      email:
+        example: efren@example.com
+        type: string
+      full_name:
+        example: Efren David
+        type: string
+      id:
+        example: 1
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API RESTful para gestión de usuarios
+  title: API GEMINI
+  version: "1.0"
+paths:
+  /gemini/process:
+    post:
+      consumes:
+      - application/json
+      description: Inicia una tarea en segundo plano para procesar un prompt con la
+        API de Gemini.
+      parameters:
+      - description: Prompt a procesar
+        in: body
+        name: requestBody
+        required: true
+        schema:
+          $ref: '#/definitions/models.PromptRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Solicitud aceptada y procesando
+          schema:
+            $ref: '#/definitions/models.TaskIDResponse'
+        "400":
+          description: JSON de solicitud inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Iniciar tarea asíncrona de Gemini
+      tags:
+      - gemini
+  /gemini/status/{task_id}:
+    get:
+      consumes:
+      - application/json
+      description: Consulta el estado y el resultado de una tarea por su ID.
+      parameters:
+      - description: ID de la tarea
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estado de la tarea
+          schema:
+            $ref: '#/definitions/models.TaskResponse'
+        "404":
+          description: ID de tarea no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener estado de la tarea de Gemini
+      tags:
+      - gemini
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Crea un usuario nuevo con contraseña
+      parameters:
+      - description: Datos para crear usuario
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear un usuario
+      tags:
+      - users
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Devuelve la información de un usuario por su ID
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un usuario por ID
+      tags:
+      - users
+swagger: "2.0"

@@ -1,0 +1,297 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API RESTful para gestión de usuarios",
+        "title": "API GEMINI",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/gemini/process": {
+            "post": {
+                "description": "Inicia una tarea en segundo plano para procesar un prompt con la API de Gemini.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gemini"
+                ],
+                "summary": "Iniciar tarea asíncrona de Gemini",
+                "parameters": [
+                    {
+                        "description": "Prompt a procesar",
+                        "name": "requestBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PromptRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Solicitud aceptada y procesando",
+                        "schema": {
+                            "$ref": "#/definitions/models.TaskIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON de solicitud inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/gemini/status/{task_id}": {
+            "get": {
+                "description": "Consulta el estado y el resultado de una tarea por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gemini"
+                ],
+                "summary": "Obtener estado de la tarea de Gemini",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la tarea",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estado de la tarea",
+                        "schema": {
+                            "$ref": "#/definitions/models.TaskResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "ID de tarea no encontrado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "description": "Crea un usuario nuevo con contraseña",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Crear un usuario",
+                "parameters": [
+                    {
+                        "description": "Datos para crear usuario",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "description": "Devuelve la información de un usuario por su ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Obtener un usuario por ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.CreateUserInput": {
+            "type": "object",
+            "required": [
+                "email",
+                "full_name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "efren@example.com"
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Efren David"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "miPasswordSeguro123"
+                }
+            }
+        },
+        "models.PromptRequest": {
+            "type": "object",
+            "properties": {
+                "prompt": {
+                    "type": "string",
+                    "example": "Conoces las becas para poder estudiar en finlandia o noruega?"
+                }
+            }
+        },
+        "models.TaskIDResponse": {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "type": "string",
+                    "example": "8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d"
+                }
+            }
+        },
+        "models.TaskResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d"
+                },
+                "result": {
+                    "type": "string",
+                    "example": "Sí, existen varias becas..."
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.TaskStatus"
+                        }
+                    ],
+                    "example": "finalizado"
+                }
+            }
+        },
+        "models.TaskStatus": {
+            "type": "string",
+            "enum": [
+                "pendiente",
+                "en_proceso",
+                "finalizado",
+                "error"
+            ],
+            "x-enum-varnames": [
+                "StatusPending",
+                "StatusProcessing",
+                "StatusCompleted",
+                "StatusError"
+            ]
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "efren@example.com"
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "Efren David"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        }
+    }
+}
