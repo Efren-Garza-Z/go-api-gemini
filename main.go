@@ -2,47 +2,59 @@ package main
 
 import (
 	"log"
+	"os"
 
-	"github.com/Efren-Garza-Z/go-api-gemini/controllers"
 	"github.com/Efren-Garza-Z/go-api-gemini/db"
-	_ "github.com/Efren-Garza-Z/go-api-gemini/docs" // Importa la documentación Swagger generada
-	"github.com/Efren-Garza-Z/go-api-gemini/models"
-	"github.com/Efren-Garza-Z/go-api-gemini/routes"
+	_ "github.com/Efren-Garza-Z/go-api-gemini/docs" // swag docs
+	"github.com/Efren-Garza-Z/go-api-gemini/domain/models"
+	"github.com/Efren-Garza-Z/go-api-gemini/domain/repositories"
+	service "github.com/Efren-Garza-Z/go-api-gemini/services"
+	controllers "github.com/Efren-Garza-Z/go-api-gemini/web/controllers"
+	"github.com/Efren-Garza-Z/go-api-gemini/web/routes"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title API GEMINI
-// @version 1.0
-// @description API RESTful para gestión de usuarios
-// @host localhost:8080
-// @BasePath /
 func main() {
+	// carga .env si usas godotenv en runtime
+	// _ = godotenv.Load()
 
-	// Conexión a PostgreSQL
 	db.Connect()
 
-	// Migración automática del modelo UserDB
+	// Migraciones
 	if err := db.DB.AutoMigrate(&models.UserDB{}, &models.GeminiProcessingDB{}, &models.GeminiProcessingFileDB{}); err != nil {
-		log.Fatalf("Error al migrar modelo UserDB: %v", err)
+		log.Fatalf("Error al migrar modelos: %v", err)
 	}
 
-	// Inyectar la conexión DB en los controladores
-	controllers.SetDB(db.DB)
+	// Repositorios
+	userRepo := repositories.NewUserRepository(db.DB)
+	gemRepo := repositories.NewGeminiRepository(db.DB)
 
-	// Crear instancia de Gin
+	// Services
+	userSvc := service.NewUserService(userRepo)
+	gemSvc := service.NewGeminiService(gemRepo)
+
+	// Controllers
+	userCtrl := controllers.NewUserController(userSvc, db.DB)
+	gemCtrl := controllers.NewGeminiController(gemSvc)
+
+	// Gin
 	r := gin.Default()
 
-	// Rutas Swagger
+	// Swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Rutas para usuarios
-	routes.RegisterUserRoutes(r)
+	// Routes
+	routes.RegisterUserRoutes(r, userCtrl)
+	routes.RegisterGeminiRoutes(r, gemCtrl)
 
-	// Iniciar servidor
-	log.Println("Servidor corriendo en http://localhost:8080")
-	if err := r.Run(":8080"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Servidor corriendo en http://localhost:%s", port)
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Error al iniciar servidor: %v", err)
 	}
 }

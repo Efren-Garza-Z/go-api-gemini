@@ -12,8 +12,8 @@ Sigue estos pasos para poner en marcha la aplicación en tu entorno local.
 #### 1. Clonar el repositorio
 
 ```bash
-git clone [https://github.com/Efren-Garza-Z/go-api-gemini.git](https://github.com/Efren-Garza-Z/go-api-gemini.git)
-cd go-api-gemini
+git clone [https://github.com/Efren-Garza-Z/go-api-service.git](https://github.com/Efren-Garza-Z/go-api-gemini.git)
+cd go-api-service
 ```
 
 ### 2. Configurar el entorno

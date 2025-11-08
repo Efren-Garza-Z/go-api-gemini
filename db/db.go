@@ -42,10 +42,8 @@ func Connect() {
 		log.Fatalf("Error al conectar a la base de datos: %v", err)
 	}
 
-	// Aquí se crea el esquema si no existe.
-	// GORM no maneja la creación de esquemas, por lo que lo hacemos con un comando SQL.
-	if err := DB.Exec("CREATE SCHEMA IF NOT EXISTS gemini;").Error; err != nil {
-		log.Fatalf("Error al crear el esquema 'gemini': %v", err)
+	if err := DB.Exec("CREATE SCHEMA IF NOT EXISTS service;").Error; err != nil {
+		log.Fatalf("Error al crear schema: %v", err)
 	}
 
 	log.Println("Conexión a la base de datos exitosa")

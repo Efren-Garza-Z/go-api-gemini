@@ -17,7 +17,6 @@ const docTemplate = `{
     "paths": {
         "/gemini/process": {
             "post": {
-                "description": "Inicia una tarea en segundo plano para procesar un prompt con la API de Gemini.",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,6 +26,7 @@ const docTemplate = `{
                 "tags": [
                     "gemini"
                 ],
+                "summary": "Iniciar procesamiento de prompt",
                 "parameters": [
                     {
                         "description": "Prompt a procesar",
@@ -40,13 +40,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "202": {
-                        "description": "Solicitud aceptada y procesando",
+                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/models.GeminiProcessingIDResponse"
                         }
                     },
                     "400": {
-                        "description": "JSON de solicitud inválido",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -57,9 +57,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/gemini/process/file": {
+        "/gemini/process-file": {
             "post": {
-                "description": "Procesa un prompt y un archivo de forma asíncrona, guarda los datos y retorna un ID de proceso.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -69,17 +68,18 @@ const docTemplate = `{
                 "tags": [
                     "gemini"
                 ],
+                "summary": "Iniciar procesamiento con archivo",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Texto del prompt",
+                        "description": "Prompt",
                         "name": "prompt",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "file",
-                        "description": "Archivo (PDF, PNG, JPEG)",
+                        "description": "Archivo (pdf/png/jpg)",
                         "name": "file",
                         "in": "formData",
                         "required": true
@@ -87,13 +87,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "202": {
-                        "description": "Proceso en cola",
+                        "description": "Accepted",
                         "schema": {
                             "$ref": "#/definitions/models.GeminiProcessingFileIDResponse"
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -106,16 +106,13 @@ const docTemplate = `{
         },
         "/gemini/status-file/{gemini_processing_id}": {
             "get": {
-                "description": "Consulta el estado y el resultado de una tarea por su ID.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "gemini"
                 ],
+                "summary": "Obtener estado de procesamiento de archivo",
                 "parameters": [
                     {
                         "type": "string",
@@ -127,18 +124,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estado del proceso y resultado",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.GeminiProcessingFileResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "ID de proceso inválido",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     }
                 }
@@ -146,16 +134,13 @@ const docTemplate = `{
         },
         "/gemini/status/{gemini_processing_id}": {
             "get": {
-                "description": "Consulta el estado y el resultado de una tarea por su ID.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "gemini"
                 ],
+                "summary": "Obtener estado de procesamiento",
                 "parameters": [
                     {
                         "type": "string",
@@ -167,26 +152,36 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estado del proceso y resultado",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.GeminiProcessingResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "ID de proceso inválido",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
                         }
                     }
                 }
             }
         },
         "/users": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Obtener todos los usuarios",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
-                "description": "Crea un usuario nuevo con contraseña",
                 "consumes": [
                     "application/json"
                 ],
@@ -196,7 +191,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Crear un usuario",
+                "summary": "Crear usuario",
                 "parameters": [
                     {
                         "description": "Datos para crear usuario",
@@ -238,17 +233,13 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
-                "description": "Devuelve la información de un usuario por su ID",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "users"
                 ],
-                "summary": "Obtener un usuario por ID",
+                "summary": "Obtener usuario por ID",
                 "parameters": [
                     {
                         "type": "integer",
@@ -264,24 +255,61 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.User"
                         }
+                    }
+                }
+            },
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Actualizar usuario",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    {
+                        "description": "Datos para actualizar usuario",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.CreateUserInput"
                         }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.User"
                         }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "users"
+                ],
+                "summary": "Eliminar usuario",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID del usuario",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     }
                 }
             }
@@ -326,20 +354,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string",
-                    "example": "8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d"
+                    "type": "string"
                 },
                 "result": {
-                    "type": "string",
-                    "example": "Sí, existen varias becas..."
+                    "type": "string"
                 },
                 "status": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.GeminiProcessingStatus"
-                        }
-                    ],
-                    "example": "finalizado"
+                    "$ref": "#/definitions/models.GeminiProcessingStatus"
                 }
             }
         },
@@ -393,10 +414,13 @@ const docTemplate = `{
         },
         "models.PromptRequest": {
             "type": "object",
+            "required": [
+                "prompt"
+            ],
             "properties": {
                 "prompt": {
                     "type": "string",
-                    "example": "Conoces las becas para poder estudiar en finlandia o noruega?"
+                    "example": "Conoces las becas para Finlandia?"
                 }
             }
         },
@@ -422,12 +446,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "API GEMINI",
-	Description:      "API RESTful para gestión de usuarios",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

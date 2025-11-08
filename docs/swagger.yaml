@@ -1,4 +1,3 @@
-basePath: /
 definitions:
   models.CreateUserInput:
     properties:
@@ -27,15 +26,11 @@ definitions:
       error:
         type: string
       id:
-        example: 8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d
         type: string
       result:
-        example: Sí, existen varias becas...
         type: string
       status:
-        allOf:
-        - $ref: '#/definitions/models.GeminiProcessingStatus'
-        example: finalizado
+        $ref: '#/definitions/models.GeminiProcessingStatus'
     type: object
   models.GeminiProcessingIDResponse:
     properties:
@@ -73,8 +68,10 @@ definitions:
   models.PromptRequest:
     properties:
       prompt:
-        example: Conoces las becas para poder estudiar en finlandia o noruega?
+        example: Conoces las becas para Finlandia?
         type: string
+    required:
+    - prompt
     type: object
   models.User:
     properties:
@@ -88,19 +85,13 @@ definitions:
         example: 1
         type: integer
     type: object
-host: localhost:8080
 info:
   contact: {}
-  description: API RESTful para gestión de usuarios
-  title: API GEMINI
-  version: "1.0"
 paths:
   /gemini/process:
     post:
       consumes:
       - application/json
-      description: Inicia una tarea en segundo plano para procesar un prompt con la
-        API de Gemini.
       parameters:
       - description: Prompt a procesar
         in: body
@@ -112,30 +103,29 @@ paths:
       - application/json
       responses:
         "202":
-          description: Solicitud aceptada y procesando
+          description: Accepted
           schema:
             $ref: '#/definitions/models.GeminiProcessingIDResponse'
         "400":
-          description: JSON de solicitud inválido
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
+      summary: Iniciar procesamiento de prompt
       tags:
       - gemini
-  /gemini/process/file:
+  /gemini/process-file:
     post:
       consumes:
       - multipart/form-data
-      description: Procesa un prompt y un archivo de forma asíncrona, guarda los datos
-        y retorna un ID de proceso.
       parameters:
-      - description: Texto del prompt
+      - description: Prompt
         in: formData
         name: prompt
         required: true
         type: string
-      - description: Archivo (PDF, PNG, JPEG)
+      - description: Archivo (pdf/png/jpg)
         in: formData
         name: file
         required: true
@@ -144,22 +134,20 @@ paths:
       - application/json
       responses:
         "202":
-          description: Proceso en cola
+          description: Accepted
           schema:
             $ref: '#/definitions/models.GeminiProcessingFileIDResponse'
         "400":
-          description: Solicitud inválida
+          description: Bad Request
           schema:
             additionalProperties:
               type: string
             type: object
+      summary: Iniciar procesamiento con archivo
       tags:
       - gemini
   /gemini/status-file/{gemini_processing_id}:
     get:
-      consumes:
-      - application/json
-      description: Consulta el estado y el resultado de una tarea por su ID.
       parameters:
       - description: ID del proceso
         in: path
@@ -170,22 +158,14 @@ paths:
       - application/json
       responses:
         "200":
-          description: Estado del proceso y resultado
+          description: OK
           schema:
             $ref: '#/definitions/models.GeminiProcessingFileResponse'
-        "400":
-          description: ID de proceso inválido
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+      summary: Obtener estado de procesamiento de archivo
       tags:
       - gemini
   /gemini/status/{gemini_processing_id}:
     get:
-      consumes:
-      - application/json
-      description: Consulta el estado y el resultado de una tarea por su ID.
       parameters:
       - description: ID del proceso
         in: path
@@ -196,22 +176,29 @@ paths:
       - application/json
       responses:
         "200":
-          description: Estado del proceso y resultado
+          description: OK
           schema:
             $ref: '#/definitions/models.GeminiProcessingResponse'
-        "400":
-          description: ID de proceso inválido
-          schema:
-            additionalProperties:
-              type: string
-            type: object
+      summary: Obtener estado de procesamiento
       tags:
       - gemini
   /users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+      summary: Obtener todos los usuarios
+      tags:
+      - users
     post:
       consumes:
       - application/json
-      description: Crea un usuario nuevo con contraseña
       parameters:
       - description: Datos para crear usuario
         in: body
@@ -238,14 +225,24 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Crear un usuario
+      summary: Crear usuario
       tags:
       - users
   /users/{id}:
+    delete:
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      summary: Eliminar usuario
+      tags:
+      - users
     get:
-      consumes:
-      - application/json
-      description: Devuelve la información de un usuario por su ID
       parameters:
       - description: ID del usuario
         in: path
@@ -259,19 +256,30 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.User'
-        "400":
-          description: Bad Request
+      summary: Obtener usuario por ID
+      tags:
+      - users
+    put:
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos para actualizar usuario
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obtener un usuario por ID
+            $ref: '#/definitions/models.User'
+      summary: Actualizar usuario
       tags:
       - users
 swagger: "2.0"
