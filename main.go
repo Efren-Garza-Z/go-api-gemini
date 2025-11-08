@@ -24,7 +24,7 @@ func main() {
 	db.Connect()
 
 	// Migración automática del modelo UserDB
-	if err := db.DB.AutoMigrate(&models.UserDB{}, &models.TaskDB{}); err != nil {
+	if err := db.DB.AutoMigrate(&models.UserDB{}, &models.GeminiProcessingDB{}, &models.GeminiProcessingFileDB{}); err != nil {
 		log.Fatalf("Error al migrar modelo UserDB: %v", err)
 	}
 

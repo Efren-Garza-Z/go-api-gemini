@@ -13,6 +13,9 @@ func RegisterUserRoutes(r *gin.Engine) {
 		users.POST("", controllers.CreateUser)
 
 		gemini.POST("/process", controllers.ProcessPrompt)
-		gemini.GET("/status/:task_id", controllers.GetTaskStatus)
+		gemini.POST("/process/file", controllers.GenerateWithFileController)
+		gemini.GET("/status/:gemini_processing_id", controllers.GetTaskStatus)
+		gemini.GET("/status-file/:gemini_processing_id", controllers.GetGeminiProcessStatus)
+
 	}
 }

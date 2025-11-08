@@ -27,7 +27,6 @@ const docTemplate = `{
                 "tags": [
                     "gemini"
                 ],
-                "summary": "Iniciar tarea asíncrona de Gemini",
                 "parameters": [
                     {
                         "description": "Prompt a procesar",
@@ -43,7 +42,7 @@ const docTemplate = `{
                     "202": {
                         "description": "Solicitud aceptada y procesando",
                         "schema": {
-                            "$ref": "#/definitions/models.TaskIDResponse"
+                            "$ref": "#/definitions/models.GeminiProcessingIDResponse"
                         }
                     },
                     "400": {
@@ -58,7 +57,54 @@ const docTemplate = `{
                 }
             }
         },
-        "/gemini/status/{task_id}": {
+        "/gemini/process/file": {
+            "post": {
+                "description": "Procesa un prompt y un archivo de forma asíncrona, guarda los datos y retorna un ID de proceso.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gemini"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Texto del prompt",
+                        "name": "prompt",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Archivo (PDF, PNG, JPEG)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Proceso en cola",
+                        "schema": {
+                            "$ref": "#/definitions/models.GeminiProcessingFileIDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/gemini/status-file/{gemini_processing_id}": {
             "get": {
                 "description": "Consulta el estado y el resultado de una tarea por su ID.",
                 "consumes": [
@@ -70,25 +116,64 @@ const docTemplate = `{
                 "tags": [
                     "gemini"
                 ],
-                "summary": "Obtener estado de la tarea de Gemini",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la tarea",
-                        "name": "task_id",
+                        "description": "ID del proceso",
+                        "name": "gemini_processing_id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estado de la tarea",
+                        "description": "Estado del proceso y resultado",
                         "schema": {
-                            "$ref": "#/definitions/models.TaskResponse"
+                            "$ref": "#/definitions/models.GeminiProcessingFileResponse"
                         }
                     },
-                    "404": {
-                        "description": "ID de tarea no encontrado",
+                    "400": {
+                        "description": "ID de proceso inválido",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/gemini/status/{gemini_processing_id}": {
+            "get": {
+                "description": "Consulta el estado y el resultado de una tarea por su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "gemini"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del proceso",
+                        "name": "gemini_processing_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estado del proceso y resultado",
+                        "schema": {
+                            "$ref": "#/definitions/models.GeminiProcessingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "ID de proceso inválido",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -225,16 +310,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.PromptRequest": {
-            "type": "object",
-            "properties": {
-                "prompt": {
-                    "type": "string",
-                    "example": "Conoces las becas para poder estudiar en finlandia o noruega?"
-                }
-            }
-        },
-        "models.TaskIDResponse": {
+        "models.GeminiProcessingFileIDResponse": {
             "type": "object",
             "properties": {
                 "task_id": {
@@ -243,7 +319,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.TaskResponse": {
+        "models.GeminiProcessingFileResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -260,14 +336,47 @@ const docTemplate = `{
                 "status": {
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.TaskStatus"
+                            "$ref": "#/definitions/models.GeminiProcessingStatus"
                         }
                     ],
                     "example": "finalizado"
                 }
             }
         },
-        "models.TaskStatus": {
+        "models.GeminiProcessingIDResponse": {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "type": "string",
+                    "example": "8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d"
+                }
+            }
+        },
+        "models.GeminiProcessingResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d"
+                },
+                "result": {
+                    "type": "string",
+                    "example": "Sí, existen varias becas..."
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.GeminiProcessingStatus"
+                        }
+                    ],
+                    "example": "finalizado"
+                }
+            }
+        },
+        "models.GeminiProcessingStatus": {
             "type": "string",
             "enum": [
                 "pendiente",
@@ -281,6 +390,15 @@ const docTemplate = `{
                 "StatusCompleted",
                 "StatusError"
             ]
+        },
+        "models.PromptRequest": {
+            "type": "object",
+            "properties": {
+                "prompt": {
+                    "type": "string",
+                    "example": "Conoces las becas para poder estudiar en finlandia o noruega?"
+                }
+            }
         },
         "models.User": {
             "type": "object",

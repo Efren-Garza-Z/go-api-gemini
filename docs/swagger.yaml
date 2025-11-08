@@ -16,19 +16,13 @@ definitions:
     - full_name
     - password
     type: object
-  models.PromptRequest:
-    properties:
-      prompt:
-        example: Conoces las becas para poder estudiar en finlandia o noruega?
-        type: string
-    type: object
-  models.TaskIDResponse:
+  models.GeminiProcessingFileIDResponse:
     properties:
       task_id:
         example: 8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d
         type: string
     type: object
-  models.TaskResponse:
+  models.GeminiProcessingFileResponse:
     properties:
       error:
         type: string
@@ -40,10 +34,31 @@ definitions:
         type: string
       status:
         allOf:
-        - $ref: '#/definitions/models.TaskStatus'
+        - $ref: '#/definitions/models.GeminiProcessingStatus'
         example: finalizado
     type: object
-  models.TaskStatus:
+  models.GeminiProcessingIDResponse:
+    properties:
+      task_id:
+        example: 8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d
+        type: string
+    type: object
+  models.GeminiProcessingResponse:
+    properties:
+      error:
+        type: string
+      id:
+        example: 8b9a1d2e-3c4f-5a6b-7c8d-9e0f1a2b3c4d
+        type: string
+      result:
+        example: Sí, existen varias becas...
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/models.GeminiProcessingStatus'
+        example: finalizado
+    type: object
+  models.GeminiProcessingStatus:
     enum:
     - pendiente
     - en_proceso
@@ -55,6 +70,12 @@ definitions:
     - StatusProcessing
     - StatusCompleted
     - StatusError
+  models.PromptRequest:
+    properties:
+      prompt:
+        example: Conoces las becas para poder estudiar en finlandia o noruega?
+        type: string
+    type: object
   models.User:
     properties:
       email:
@@ -93,41 +114,97 @@ paths:
         "202":
           description: Solicitud aceptada y procesando
           schema:
-            $ref: '#/definitions/models.TaskIDResponse'
+            $ref: '#/definitions/models.GeminiProcessingIDResponse'
         "400":
           description: JSON de solicitud inválido
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Iniciar tarea asíncrona de Gemini
       tags:
       - gemini
-  /gemini/status/{task_id}:
+  /gemini/process/file:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Procesa un prompt y un archivo de forma asíncrona, guarda los datos
+        y retorna un ID de proceso.
+      parameters:
+      - description: Texto del prompt
+        in: formData
+        name: prompt
+        required: true
+        type: string
+      - description: Archivo (PDF, PNG, JPEG)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Proceso en cola
+          schema:
+            $ref: '#/definitions/models.GeminiProcessingFileIDResponse'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      tags:
+      - gemini
+  /gemini/status-file/{gemini_processing_id}:
     get:
       consumes:
       - application/json
       description: Consulta el estado y el resultado de una tarea por su ID.
       parameters:
-      - description: ID de la tarea
+      - description: ID del proceso
         in: path
-        name: task_id
+        name: gemini_processing_id
         required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Estado de la tarea
+          description: Estado del proceso y resultado
           schema:
-            $ref: '#/definitions/models.TaskResponse'
-        "404":
-          description: ID de tarea no encontrado
+            $ref: '#/definitions/models.GeminiProcessingFileResponse'
+        "400":
+          description: ID de proceso inválido
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Obtener estado de la tarea de Gemini
+      tags:
+      - gemini
+  /gemini/status/{gemini_processing_id}:
+    get:
+      consumes:
+      - application/json
+      description: Consulta el estado y el resultado de una tarea por su ID.
+      parameters:
+      - description: ID del proceso
+        in: path
+        name: gemini_processing_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estado del proceso y resultado
+          schema:
+            $ref: '#/definitions/models.GeminiProcessingResponse'
+        "400":
+          description: ID de proceso inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       tags:
       - gemini
   /users:
